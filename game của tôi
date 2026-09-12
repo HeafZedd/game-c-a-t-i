@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cổng Trò Chơi & Giải Trí Tổng Hợp (5 trong 1)</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: #1a1a2e;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        header {
+            text-align: center;
+            padding: 20px;
+        }
+
+        h1 {
+            margin: 0 0 10px 0;
+            color: #e94560;
+            font-size: 28px;
+        }
+
+        /* Thanh menu chọn game */
+        .game-nav {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+            background: #16213e;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+            margin-bottom: 20px;
+            max-width: 900px;
+        }
+
+        .nav-btn {
+            background-color: #0f3460;
+            color: white;
+            border: 2px solid #e94560;
+            padding: 10px 18px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.2s;
+        }
+
+        .nav-btn:hover, .nav-btn.active {
+            background-color: #e94560;
+            transform: translateY(-2px);
+        }
+
+        /* Khung chứa các trò chơi */
+        .game-container {
+            width: 800px;
+            height: 500px;
+            background: #16213e;
+            border: 3px solid #0f3460;
+            border-radius: 12px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.6);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .game-screen {
+            display: none;
+            width: 100%;
+            height: 100%;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+
+        .game-screen.active {
+            display: flex;
+        }
+
+        /* CSS Chung cho các game con */
+        canvas {
+            background: #222;
+            border: 2px solid #fff;
+            border-radius: 6px;
+        }
+
+        .btn-action {
+            background: #27ae60;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            margin: 5px;
+        }
+        .btn-action:hover { background: #219653; }
+
+        /* Chatbot UI */
+        .chat-box {
+            width: 100%;
+            height: 380px;
+            background: #0f3460;
+            border-radius: 8px;
+            border: 1px solid #444;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .chat-messages {
+            flex: 1;
+            padding: 15px;
+            overflow-y: auto;
+            text-align: left;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .message {
+            padding: 8px 12px;
+            border-radius: 6px;
+            max-width: 70%;
+            word-wrap: break-word;
+        }
+        .message.user {
+            background: #e94560;
+            align-self: flex-end;
+        }
+        .message.bot {
+            background: #333;
+            align-self: flex-start;
+        }
+        .chat-input-area {
+            display: flex;
+            padding: 10px;
+            background: #111;
+            gap: 10px;
+        }
+        .chat-input-area input {
+            flex: 1;
+            padding: 8px;
+            border-radius: 4px;
+            border: none;
+            outline: none;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>CỔNG GAME & TRÍ TUỆ NHÂN TẠO 5 TRONG 1</h1>
+        <div class="game-nav">
+            <button class="nav-btn active" onclick="switchGame(0)">1. Trốn Tìm</button>
+            <button class="nav-btn" onclick="switchGame(1)">2. Bắn Súng (Free Fire)</button>
+            <button class="nav-btn" onclick="switchGame(2)">3. Oẳn Tù Tì</button>
+            <button class="nav-btn" onclick="switchGame(3)">4. Nối Từ</button>
+            <button class="nav-btn" onclick="switchGame(4)">5. Chat JPF Bot</button>
+        </div>
+    </header>
+
+    <div class="game-container">
+
+        <!-- GAME 1: TRỐN TÌM -->
+        <div id="game-0" class="game-screen active">
+            <h3>Trốn Tìm (Hide & Seek)</h3>
+            <p id="hide-status" style="font-size: 16px; color: #f1c40f; margin-bottom: 10px;">NPC đang đi tìm! Hãy bấm Trốn Vào Tủ hoặc Chạy!</p>
+            <div style="background: #111; width: 600px; height: 250px; border-radius: 8px; display: flex; align-items: center; justify-content: space-around; position: relative; border: 2px solid #555;">
+                <div id="npc-obj" style="font-size: 40px; transition: 0.5s;">👀</div>
+                <div id="player-obj" style="font-size: 40px; transition: 0.5s;">🧑</div>
+            </div>
+            <div style="margin-top: 15px;">
+                <button class="btn-action" onclick="hidePlayer(true)">Trốn Vào Tủ 🚪</button>
+                <button class="btn-action" onclick="hidePlayer(false)">Chạy Trốn 🏃</button>
+                <button class="btn-action" style="background:#e74c3c" onclick="resetHideSeek()">Chơi Lại</button>
+            </div>
+            <div id="hide-result" style="margin-top: 10px; font-weight: bold; color: #2ecc71;"></div>
+        </div>
+
+        <!-- GAME 2: BẮN SÚNG (FREE FIRE MINI) -->
+        <div id="game-1" class="game-screen">
+            <h3>Bắn Súng Sinh Tồn Mini</h3>
+            <p style="margin: 5px; font-size: 14px;">Điểm: <span id="gun-score">0</span> | Click chuột trái vào mục tiêu địch để bắn!</p>
+            <canvas id="gunCanvas" width="700" height="350" style="cursor: crosshair;"></canvas>
+            <button class="btn-action" style="margin-top: 10px;" onclick="resetGunGame()">Bắt đầu lại</button>
+        </div>
+
+        <!-- GAME 3: OẲN TÙ TÌ -->
+        <div id="game-2" class="game-screen">
+            <h3>Oẳn Tù Tì Với Máy</h3>
+            <p style="font-size: 16px; margin-bottom: 20px;">Lựa chọn của bạn:</p>
+            <div style="display: flex; gap: 15px; margin-bottom: 20px;">
+                <button class="btn-action" style="font-size: 20px; padding: 15px 25px;" onclick="playRps('Búa')">✊ Búa</button>
+                <button class="btn-action" style="font-size: 20px; padding: 15px 25px;" onclick="playRps('Kéo')">✌️ Kéo</button>
+                <button class="btn-action" style="font-size: 20px; padding: 15px 25px;" onclick="playRps('Bao')">🖐️ Bao</button>
+            </div>
+            <div id="rps-result" style="font-size: 18px; line-height: 1.6; font-weight: bold;"></div>
+        </div>
+
+        <!-- GAME 4: NỐI TỪ -->
+        <div id="game-3" class="game-screen">
+            <h3>Nối Từ Tiếng Việt Với Bot</h3>
+            <p style="font-size: 14px; color: #aaa;">Luật: Từ của bạn phải bắt đầu bằng âm cuối của từ Bot vừa ra.</p>
+            <div style="background: #111; padding: 15px; border-radius: 8px; width: 80%; margin-bottom: 15px; text-align: left;">
+                <div id="chain-log" style="height: 180px; overflow-y: auto; font-family: monospace; color: #f1c40f;"></div>
+            </div>
+            <div style="display: flex; gap: 10px;">
+                <input type="text" id="chain-input" placeholder="Nhập 2 từ (Ví dụ: xe hơi)..." style="padding: 8px; width: 250px; border-radius: 4px; border: none; outline: none;">
+                <button class="btn-action" onclick="submitWordChain()">Gửi Từ</button>
+            </div>
+        </div>
+
+        <!-- GAME 5: CHAT JPF BOT -->
+        <div id="game-4" class="game-screen">
+            <h3>Trò Chuyện Với Trợ Lý JPF</h3>
+            <div class="chat-box">
+                <div class="chat-messages" id="chat-messages">
+                    <div class="message bot">Xin chào! Tôi là JPF Bot giả lập. Bạn muốn trò chuyện hay hỏi gì nào?</div>
+                </div>
+                <div class="chat-input-area">
+                    <input type="text" id="user-chat-input" placeholder="Nhập tin nhắn..." onkeypress="handleChatEnter(event)">
+                    <button class="btn-action" onclick="sendChatMessage()">Gửi</button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // Điều hướng chuyển đổi game
+        function switchGame(index) {
+            const screens = document.querySelectorAll('.game-screen');
+            const buttons = document.querySelectorAll('.nav-btn');
+            
+            screens.forEach((screen, i) => {
+                screen.classList.toggle('active', i === index);
+            });
+            buttons.forEach((btn, i) => {
+                btn.classList.toggle('active', i === index);
+            });
+
+            // Nếu sang game bắn súng thì khởi động loop game
+            if (index === 1 && !gunGameStarted) {
+                initGunGame();
+            }
+        }
+
+        /* --- GAME 1: TRỐN TÌM --- */
+        let hideTimeout;
+        function hidePlayer(isHideInCloset) {
+            const resultDiv = document.getElementById("hide-result");
+            const npc = document.getElementById("npc-obj");
+            const status = document.getElementById("hide-status");
+            
+            status.innerText = "NPC đang dò tìm xung quanh phòng...";
+            npc.style.transform = "translateX(150px)";
+
+            clearTimeout(hideTimeout);
+            hideTimeout = setTimeout(() => {
+                let isCaught = Math.random() < 0.4; // 40% bị phát hiện nếu không trốn khéo
+
+                if (isHideInCloset) {
+                    resultDiv.style.color = "#2ecc71";
+                    resultDiv.innerText = "🎉 Bạn đã trốn vào tủ hoàn hảo! NPC đi qua mà không thấy bạn. Bạn THẮNG!";
+                    status.innerText = "An toàn trong tủ!";
+                } else {
+                    if (isCaught) {
+                        resultDiv.style.color = "#e74c3c";
+                        resultDiv.innerText = "❌ Bạn chạy lộ dạng và bị NPC tóm gọn! BẠN THUA!";
+                        status.innerText = "Đã bị bắt!";
+                    } else {
+                        resultDiv.style.color = "#2ecc71";
+                        resultDiv.innerText = "⚡ Bạn chạy nhanh thoát thân thành công khỏi tầm nhìn NPC! THẮNG!";
+                        status.innerText = "Thoát nạn thành công!";
+                    }
+                }
+            }, 1200);
+        }
+
+        function resetHideSeek() {
+            document.getElementById("hide-result").innerText = "";
+            document.getElementById("hide-status").innerText = "NPC đang đi tìm! Hãy bấm Trốn Vào Tủ hoặc Chạy!";
+            document.getElementById("npc-obj").style.transform = "translateX(0px)";
+        }
+
+        /* --- GAME 2: BẮN SÚNG (FREE FIRE MINI) --- */
+        const gunCanvas = document.getElementById("gunCanvas");
+        const gunCtx = gunCanvas.getContext("2d");
+        let gunScore = 0;
+        let targets = [];
+        let gunGameStarted = false;
+        let gunLoopInterval;
+
+        function initGunGame() {
+            gunGameStarted = true;
+            resetGunGame();
+
+            gunCanvas.onclick = (e) => {
+                const rect = gunCanvas.getBoundingClientRect();
+                const clickX = e.clientX - rect.left;
+                const clickY = e.clientY - rect.top;
+
+                for (let i = targets.length - 1; i >= 0; i--) {
+                    let t = targets[i];
+                    let dist = Math.hypot(clickX - t.x, clickY - t.y);
+                    if (dist < t.radius) {
+                        gunScore += 10;
+                        document.getElementById("gun-score").innerText = gunScore;
+                        targets.splice(i, 1);
+                        break;
+                    }
+                }
+            };
+
+            clearInterval(gunLoopInterval);
+            gunLoopInterval = setInterval(updateGunGame, 30);
+        }
+
+        function resetGunGame() {
+            gunScore = 0;
+            targets = [];
+            document.getElementById("gun-score").innerText = gunScore;
+            for(let i=0; i<3; i++) spawnTarget();
+        }
+
+        function spawnTarget() {
+            if (!gunGameStarted) return;
+            targets.push({
+                x: Math.random() * (gunCanvas.width - 60) + 30,
+                y: Math.random() * (gunCanvas.height - 60) + 30,
+                radius: 20,
+                color: '#e74c3c',
+                vx: (Math.random() - 0.5) * 4
+            });
+            setTimeout(spawnTarget, 1500);
+        }
+
+        function updateGunGame() {
+            gunCtx.clearRect(0, 0, gunCanvas.width, gunCanvas.height);
+            
+            // Vẽ bối cảnh chiến trường
+            gunCtx.fillStyle = "#333";
+            gunCtx.fillRect(0,0,gunCanvas.width, gunCanvas.height);
+
+            // Cập nhật và vẽ mục tiêu (kẻ địch)
+            for (let i = 0; i < targets.length; i++) {
+                let t = targets[i];
+                t.x += t.vx;
+                if (t.x < 20 || t.x > gunCanvas.width - 20) t.vx *= -1;
+
+                gunCtx.beginPath();
+                gunCtx.arc(t.x, t.y, t.radius, 0, Math.PI * 2);
+                gunCtx.fillStyle = t.color;
+                gunCtx.fill();
+                gunCtx.lineWidth = 2;
+                gunCtx.strokeStyle = "#fff";
+                gunCtx.stroke();
+                gunCtx.closePath();
+
+                // Vẽ tâm ngắm đầu địch đơn giản
+                gunCtx.fillStyle = "#fff";
+                gunCtx.fillRect(t.x - 3, t.y - 3, 6, 6);
+            }
+        }
+
+        /* --- GAME 3: OẲN TÙ TÌ --- */
+        function playRps(playerChoice) {
+            const choices = ['Búa', 'Kéo', 'Bao'];
+            const botChoice = choices[Math.floor(Math.random() * choices.length)];
+            const resultDiv = document.getElementById("rps-result");
+
+            let resText = `Bạn chọn: <b>${playerChoice}</b> | Máy chọn: <b>${botChoice}</b><br>`;
+            
+            if (playerChoice === botChoice) {
+                resText += "<span style='color: #f39c12;'>🤝 HÒA NHAU!</span>";
+            } else if (
+                (playerChoice === 'Búa' && botChoice === 'Kéo') ||
+                (playerChoice === 'Kéo' && botChoice === 'Bao') ||
+                (playerChoice === 'Bao' && botChoice === 'Búa')
+            ) {
+                resText += "<span style='color: #2ecc71;'>🎉 BẠN ĐÃ THẮNG!</span>";
+            } else {
+                resText += "<span style='color: #e74c3c;'>❌ BẠN ĐÃ THUA MÁY!</span>";
+            }
+            resultDiv.innerHTML = resText;
+        }
+
+        /* --- GAME 4: NỐI TỪ --- */
+        let chainWords = ["Học tập"];
+        let lastWord = "tập";
+        renderChainLog();
+
+        function renderChainLog() {
+            const log = document.getElementById("chain-log");
+            log.innerHTML = chainWords.join(" ➔ ");
+            log.scrollTop = log.scrollHeight;
+        }
+
+        function submitWordChain() {
+            const input = document.getElementById("chain-input");
+            const val = input.value.trim();
+            if (!val) return;
+
+            let wordsArr = val.split(" ");
+            if (wordsArr.length < 2) {
+                alert("Vui lòng nhập ít nhất 2 từ (Ví dụ: xe hơi)!");
+                return;
+            }
+
+            let firstWordOfUser = wordsArr[0].toLowerCase();
+            if (firstWordOfUser !== lastWord.toLowerCase()) {
+                alert(`Từ của bạn phải bắt đầu bằng chữ "${lastWord}"!`);
+                return;
+            }
+
+            chainWords.push(val);
+            lastWord = wordsArr[wordsArr.length - 1];
+            input.value = "";
+            renderChainLog();
+
+            // Bot tự động nối tiếp sau 1 giây
+            setTimeout(() => {
+                const botDatabase = {
+                    "tập": "tập thể dục",
+                    "dục": "dục vọng",
+                    "vọng": "vọng tưởng",
+                    "hơi": "hơi thở",
+                    "thở": "thở phào",
+                    "phào": "phào nhẹ nhõm"
+                };
+                let botReply = botDatabase[lastWord.toLowerCase()] || (lastWord + " năng");
+                let botWordsArr = botReply.split(" ");
+                
+                chainWords.push(botReply);
+                lastWord = botWordsArr[botWordsArr.length - 1];
+                renderChainLog();
+            }, 1000);
+        }
+
+        /* --- GAME 5: CHAT JPF BOT --- */
+        function handleChatEnter(e) {
+            if (e.key === "Enter") sendChatMessage();
+        }
+
+        function sendChatMessage() {
+            const input = document.getElementById("user-chat-input");
+            const text = input.value.trim();
+            if (!text) return;
+
+            const chatMessages = document.getElementById("chat-messages");
+            
+            // Tin nhắn người dùng
+            chatMessages.innerHTML += `<div class="message user">${text}</div>`;
+            input.value = "";
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+
+            // Phản hồi từ JPF Bot giả lập thông minh
+            setTimeout(() => {
+                let reply = "Tôi là JPF Bot giả lập, tôi hiểu ý bạn nói rồi!";
+                let lower = text.toLowerCase();
+
+                if (lower.includes("chào") || lower.includes("hi")) {
+                    reply = "Xin chào người bạn tuyệt vời! Hôm nay bạn muốn chơi game gì nào?";
+                } else if (lower.includes("tên") || lower.includes("bạn là ai")) {
+                    reply = "Tôi là JPF Bot phiên bản giả lập thông minh tích hợp sẵn trong trang web này.";
+                } else if (lower.includes("thời tiết")) {
+                    reply = "Thời tiết hôm nay rất đẹp để ngồi chơi game lập trình HTML đấy!";
+                } else if (lower.includes("buồn") || lower.includes("chán")) {
+                    reply = "Đừng chán nhé, hãy thử qua mục Bắn Súng hoặc Trốn Tìm để giải khuây nào!";
+                }
+
+                chatMessages.innerHTML += `<div class="message bot">${reply}</div>`;
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }, 600);
+        }
+    </script>
+</body>
+</html>
